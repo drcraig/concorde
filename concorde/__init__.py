@@ -1,6 +1,5 @@
 import argparse
 import os
-import fnmatch
 from operator import itemgetter
 from datetime import datetime
 from urlparse import urljoin
@@ -19,9 +18,7 @@ def get_files(paths, extensions=['.md', '.markdown'], recurse=False):
             files.extend([os.path.join(root, filename) for filename in filenames])
             if not recurse:
                 break
-    for extention in extensions:
-        files = fnmatch.filter(files, '*'+extention)
-    return files
+    return [f for f in files if os.path.splitext(f)[1] in extensions]
 
 def parse_markdown_file(md_file):
     md = Markdown(extensions=['extra', 'meta', 'nl2br', 'sane_lists'])
@@ -100,13 +97,13 @@ def generate_feed(md_files, output_extension, feedfile, feed_url, title='', desc
 def main():
     base_parser = argparse.ArgumentParser(add_help=False)
     base_parser.add_argument('-t', '--template', default='', help='Template file to use when rendering')
+    base_parser.add_argument('--output-extension', help='File extension of the rendered output files, if different from the template file extension')
     base_parser.add_argument('-r', '--recurse', action='store_true', default=False, 
                              help='Recurse through a directory')
-    base_parser.add_argument('--output-extension', help='File extension of the rendered output files')
-    base_parser.add_argument('paths', metavar='path', nargs="+", help='Markdown file or directory of Markdown files')
+    base_parser.add_argument('paths', metavar='path', nargs="+", help='Markdown file(s) or director(y,ies) of Markdown files')
 
     parser = argparse.ArgumentParser(description="Static site generator")
-    subparsers = parser.add_subparsers(help='subcommand help', dest='subparser_name')
+    subparsers = parser.add_subparsers(dest='subparser_name')
 
     pages_parser = subparsers.add_parser('pages', help='Render Markdown files to pages', parents=[base_parser])
 
@@ -121,15 +118,15 @@ def main():
 
     args = parser.parse_args()
 
-    markdown_files = get_files(args.paths, extensions=['.md', '.markdown'],
-                               recurse=args.recurse)
-    output_extension = args.output_extension or os.path.splitext(args.template)[1]
+    markdown_files = get_files(args.paths, recurse=args.recurse)
+    print(markdown_files)
 
-    if args.subparser_name == 'index':
-        render_to_index(markdown_files, args.template, args.output, output_extension)
-        return
+    output_extension = args.output_extension or os.path.splitext(args.template)[1]
     if args.subparser_name == 'pages':
         render_articles(markdown_files, args.template, output_extension)
+        return
+    if args.subparser_name == 'index':
+        render_to_index(markdown_files, args.template, args.output, output_extension)
         return
     if args.subparser_name == 'rss':
         generate_feed(markdown_files, output_extension, args.output, args.url,
