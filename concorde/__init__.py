@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 import argparse
 import os
 from operator import itemgetter
@@ -9,7 +11,7 @@ import dateutil.parser
 from jinja2 import Environment, FileSystemLoader
 import PyRSS2Gen
 
-def get_files(paths, extensions=['.md', '.markdown'], recurse=False):
+def get_source_files(paths, extensions=['.md', '.markdown'], recurse=False):
     files = []
     for path in paths:
         if os.path.isfile(path):
@@ -20,7 +22,7 @@ def get_files(paths, extensions=['.md', '.markdown'], recurse=False):
                 break
     return [f for f in files if os.path.splitext(f)[1] in extensions]
 
-def parse_markdown_file(md_file):
+def parse_markdown_file(md_file, output_extension=''):
     md = Markdown(extensions=['extra', 'meta', 'nl2br', 'sane_lists'])
     html = md.convert(open(md_file).read())
     slug, _ = os.path.splitext(os.path.basename(md_file))
@@ -36,7 +38,7 @@ def parse_markdown_file(md_file):
         'html': html,
         'slug': slug,
         'source': md_file,
-        'link': os.path.splitext(md_file)[0]
+        'link': os.path.splitext(md_file)[0] + output_extension
     })
     return data
 
@@ -47,15 +49,9 @@ def render_to_file(context, template, outfile):
     with open(outfile, 'w') as f:
         f.write(output.encode('utf-8'))
 
-def contexts_and_destinations(md_files, output_extentsion):
-    for md_file in md_files:
-        context = parse_markdown_file(md_file)
-        outfile = os.path.splitext(md_file)[0] + output_extentsion
-        context['url'] = outfile
-        yield context, outfile
-
 def render_articles(md_files, template, output_extension=''):
-    for context, outfile in contexts_and_destinations(md_files, output_extension or os.path.splitext(template)[1]):
+    for md_file in md_files:
+        context = parse_markdown_file(md_file, output_extension)
         render_to_file(context, template, outfile)
 
 def file_relpath(file1, file2):
@@ -63,17 +59,17 @@ def file_relpath(file1, file2):
                         os.path.basename(file1))
 
 def render_to_index(md_files, template, indexfile, output_extension):
-    articles = [context for context, _ in contexts_and_destinations(md_files, output_extension)]
+    articles = [parse_markdown_file(md_file, output_extension) for md_file in md_files]
     articles.sort(key=itemgetter('date'), reverse=True)
     for article in articles:
-        article['url'] = file_relpath(article['url'], indexfile)
+        article['url'] = file_relpath(article['link'], indexfile)
     render_to_file({'articles': articles}, template, indexfile)
 
 def generate_feed(md_files, output_extension, feedfile, feed_url, title='', description=''):
-    articles = [context for context, _ in contexts_and_destinations(md_files, output_extension)]
+    articles = [parse_markdown_file(md_file, output_extension) for md_file in md_files]
     articles.sort(key=itemgetter('date'), reverse=True)
     for article in articles:
-        relative_path = file_relpath(article['url'], feedfile)
+        relative_path = file_relpath(article['link'], feedfile)
         article['url'] = urljoin(feed_url, relative_path)
 
     rss = PyRSS2Gen.RSS2(
@@ -118,7 +114,7 @@ def main():
 
     args = parser.parse_args()
 
-    markdown_files = get_files(args.paths, recurse=args.recurse)
+    markdown_files = get_source_files(args.paths, recurse=args.recurse)
     print(markdown_files)
 
     output_extension = args.output_extension or os.path.splitext(args.template)[1]
