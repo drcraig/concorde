@@ -115,7 +115,6 @@ def main():
     args = parser.parse_args()
 
     markdown_files = get_source_files(args.paths, recurse=args.recurse)
-    print(markdown_files)
 
     output_extension = args.output_extension or os.path.splitext(args.template)[1]
     if args.subparser_name == 'pages':
