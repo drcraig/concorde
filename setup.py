@@ -30,6 +30,7 @@ setup(name='concorde',
       entry_points={
           'console_scripts': ['concorde=concorde:main'],
       },
+      setup_requires=['nose>=1.0'],
       test_suite='nose.collector',
       tests_require=['nose', 'mock', 'coverage', 'scripttest'],
       include_package_data=True,
