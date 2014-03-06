@@ -32,9 +32,13 @@ def parse_markdown_file(md_file, output_extension=''):
 
     data = {}
     data.update(md.Meta)
+
+    date = os.path.getmtime(md_file)
+    if md.Meta.get('date'):
+        date = dateutil.parser.parse(md.Meta.get('date')[0])
     data.update({
         'title': md.Meta.get('title', [''])[0] or slug.replace('-', ' ').replace('_', ' ').title(),
-        'date': dateutil.parser.parse(md.Meta.get('date', [''])[0]) or os.path.getmtime(source),
+        'date': date,
         'html': html,
         'slug': slug,
         'source': md_file,
@@ -42,17 +46,20 @@ def parse_markdown_file(md_file, output_extension=''):
     })
     return data
 
-def render_to_file(context, template, outfile):
+def render(context, template, outfile):
     env = Environment(loader=FileSystemLoader(os.path.dirname(template)),
                       trim_blocks=True, lstrip_blocks=True)
-    output = env.get_template(os.path.basename(template)).render(context)
-    with open(outfile, 'w') as f:
-        f.write(output.encode('utf-8'))
+    return env.get_template(os.path.basename(template)).render(context)
+
+def write(content, filename):
+    with open(filename, 'w') as f:
+        f.write(content.encode('utf-8'))
 
 def render_articles(md_files, template, output_extension=''):
     for md_file in md_files:
         context = parse_markdown_file(md_file, output_extension)
-        render_to_file(context, template, outfile)
+        content = render(context, template, context['link'])
+        write(content, context['link'])
 
 def file_relpath(file1, file2):
     return os.path.join(os.path.relpath(os.path.dirname(file1), os.path.dirname(file2)),
@@ -63,7 +70,8 @@ def render_to_index(md_files, template, indexfile, output_extension):
     articles.sort(key=itemgetter('date'), reverse=True)
     for article in articles:
         article['url'] = file_relpath(article['link'], indexfile)
-    render_to_file({'articles': articles}, template, indexfile)
+    content = render({'articles': articles}, template)
+    write(content, indexfile)
 
 def generate_feed(md_files, output_extension, feedfile, feed_url, title='', description=''):
     articles = [parse_markdown_file(md_file, output_extension) for md_file in md_files]
