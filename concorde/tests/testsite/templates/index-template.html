@@ -1,7 +1,7 @@
 <h1>Some Articles</h1>
 {% for article in articles %}
 <div>
-<h2>{{ article.title }}</h2>
+<h2><a href="{{ article.url }}">{{ article.title }}</a></h2>
 <div>{{ article.author }} {{ article.date }}</div>
 {{ article.html }}
 </div>
