@@ -32,6 +32,6 @@ setup(name='concorde',
       },
       setup_requires=['nose>=1.0'],
       test_suite='nose.collector',
-      tests_require=['nose', 'mock', 'coverage', 'scripttest'],
+      tests_require=['nose', 'mock', 'coverage'],
       include_package_data=True,
       zip_safe=False)
