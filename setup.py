@@ -28,7 +28,7 @@ setup(name='concorde',
           'python-dateutil'
       ],
       entry_points={
-          'console_scripts': ['concorde=concorde:main'],
+          'console_scripts': ['concorde=concorde.command_line:main'],
       },
       setup_requires=['nose>=1.0'],
       test_suite='nose.collector',
