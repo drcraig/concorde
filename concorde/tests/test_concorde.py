@@ -1,6 +1,8 @@
 import unittest
 import os
+import time
 import datetime
+import argparse
 
 import mock
 
@@ -63,12 +65,25 @@ class TestParseMarkdownFile(unittest.TestCase):
         m = mock.mock_open(read_data='No metadata')
         with mock.patch('concorde.open', m, create=True), \
              mock.patch('concorde.os.path.getmtime') as getmtime:
-            getmtime.return_value = datetime.datetime(2014,3,1,12,0,0)
+            mod_time = datetime.datetime(2014,3,1,12,0,0)
+            getmtime.return_value = time.mktime(mod_time.timetuple())
             context = concorde.parse_markdown_file('a-folder/a-markdown-file.md')
             self.assertTrue(getmtime.called)
             self.assertEqual('A Markdown File', context['title'])
             self.assertIn('No metadata', context['html'])
-            self.assertEqual(datetime.datetime(2014,3,1,12,0,0), context['date'])
+            self.assertEqual(mod_time, context['date'])
+
+    def test_empty(self):
+        m = mock.mock_open(read_data='')
+        with mock.patch('concorde.open', m, create=True), \
+             mock.patch('concorde.os.path.getmtime') as getmtime:
+            mod_time = datetime.datetime(2014,3,1,12,0,0)
+            getmtime.return_value = time.mktime(mod_time.timetuple())
+            context = concorde.parse_markdown_file('a-folder/a-markdown-file.md')
+            self.assertTrue(getmtime.called)
+            self.assertEqual('A Markdown File', context['title'])
+            self.assertIn('', context['html'])
+            self.assertEqual(mod_time, context['date'])
 
 class TestUtilities(unittest.TestCase):
     def test_write(self):
@@ -156,3 +171,19 @@ class TestRendering(unittest.TestCase):
             article_1['url'] = 'b/slug-1.ext'
             article_2['url'] = 'b/c/slug-2.ext'
             mock_open.assert_called_once_with('a/feed', 'w')
+
+class TestCommandLine(unittest.TestCase):
+    def setUp(self):
+        os.chdir(TESTSITE)
+
+    def test_pages(self):
+        concorde.command_line.main(['pages', '-t', 'templates/page-template.html', 'site/blog/'])
+
+    def test_index(self):
+        concorde.command_line.main(['index', '-t', 'templates/index-template.html',
+                                    '-o', 'site/blog/index.html', 'site/blog/'])
+
+    def test_rss(self):
+        concorde.command_line.main(['rss', '--title', 'The Title', '--description', 'The Description',
+                                    '--url', 'http://example.com/blog/rss.xml',
+                                    '-o', 'site/blog/rss.xml', 'site/blog/'])

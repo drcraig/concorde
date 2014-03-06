@@ -1,6 +1,9 @@
+import os.path
+import argparse
+
 from . import get_source_files, render_articles, render_to_index, generate_feed
 
-def main():
+def main(test_args=None):
     base_parser = argparse.ArgumentParser(add_help=False)
     base_parser.add_argument('-t', '--template', default='', help='Template file to use when rendering')
     base_parser.add_argument('--output-extension', help='File extension of the rendered output files, if different from the template file extension')
@@ -22,7 +25,7 @@ def main():
     rss_parser.add_argument('--description', default='', help='Description of the RSS feed')
     rss_parser.add_argument('--url', default='', help='URL of the RSS feed')
 
-    args = parser.parse_args()
+    args = parser.parse_args(test_args) if test_args else parser.parse_args()
 
     markdown_files = get_source_files(args.paths, recurse=args.recurse)
 

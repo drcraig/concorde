@@ -1,6 +1,5 @@
 from __future__ import with_statement
 
-import argparse
 import os
 from operator import itemgetter
 from datetime import datetime
@@ -33,7 +32,7 @@ def parse_markdown_file(md_file, output_extension=''):
     data = {}
     data.update(md.Meta)
 
-    date = os.path.getmtime(md_file)
+    date = datetime.fromtimestamp(os.path.getmtime(md_file))
     if md.Meta.get('date'):
         date = dateutil.parser.parse(md.Meta.get('date')[0])
     data.update({
