@@ -46,7 +46,7 @@ def parse_markdown_file(md_file, output_extension=''):
     })
     return data
 
-def render(context, template, outfile):
+def render(context, template):
     env = Environment(loader=FileSystemLoader(os.path.dirname(template)),
                       trim_blocks=True, lstrip_blocks=True)
     return env.get_template(os.path.basename(template)).render(context)
@@ -58,7 +58,7 @@ def write(content, filename):
 def render_articles(md_files, template, output_extension=''):
     for md_file in md_files:
         context = parse_markdown_file(md_file, output_extension)
-        content = render(context, template, context['link'])
+        content = render(context, template)
         write(content, context['link'])
 
 def file_relpath(file1, file2):

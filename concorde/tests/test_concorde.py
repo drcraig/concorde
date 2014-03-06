@@ -85,7 +85,17 @@ class TestUtilities(unittest.TestCase):
 
 class TestRendering(unittest.TestCase):
     def test_render(self):
-        pass
+        with mock.patch('concorde.Environment') as Environment:
+            env = mock.Mock()
+            Environment.return_value = env
+            template = mock.Mock()
+            env.get_template.return_value = template
+            concorde.render({'the':'context'}, 'folder/the-template')
+            env.get_template.assert_called_with('the-template')
+            template.render.assert_called_with({'the': 'context'})
+
+
+
 
     def test_render_articles(self):
         with mock.patch('concorde.parse_markdown_file') as parse_markdown_file, \
