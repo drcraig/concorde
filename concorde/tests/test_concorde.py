@@ -134,7 +134,7 @@ class TestRendering(unittest.TestCase):
             render.assert_called_once_with({'articles': [article_2, article_1]}, 'template')
             write.assert_called_once_with('rendered', 'a/index')
 
-    def test_render_to_index(self):
+    def test_generate_feed(self):
         with mock.patch('concorde.parse_markdown_file') as parse_markdown_file, \
              mock.patch('concorde.open', mock.mock_open(), create=True) as mock_open:
             article_1 = {
