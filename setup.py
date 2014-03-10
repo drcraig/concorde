@@ -5,11 +5,11 @@ def readme():
         return f.read()
 
 setup(name='concorde',
-      version='0.0',
+      version='0.1',
       description='Static site generator using Markdown and Jinja',
       long_description=readme(),
       classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 3 - Alpha',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 2.7',
         'Topic :: Internet :: WWW/HTTP :: Site Management',
