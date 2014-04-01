@@ -23,7 +23,7 @@ setup(name='concorde',
       packages=['concorde'],
       install_requires=[
           'markdown',
-          'jinja2',
+          'jinja2 >= 2.7',
           'PyRSS2Gen',
           'python-dateutil'
       ],
