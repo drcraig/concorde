@@ -1,6 +1,8 @@
+# coding: utf-8
 from __future__ import with_statement
 
 import os
+import codecs
 from operator import itemgetter
 from datetime import datetime
 from urlparse import urljoin
@@ -23,7 +25,7 @@ def get_source_files(paths, extensions=['.md', '.markdown'], recurse=False):
 
 def parse_markdown_file(md_file, output_extension=''):
     md = Markdown(extensions=['extra', 'meta', 'nl2br', 'sane_lists'])
-    html = md.convert(open(md_file).read())
+    html = md.convert(codecs.open(md_file, 'r', 'utf-8').read())
     slug, _ = os.path.splitext(os.path.basename(md_file))
 
     if not hasattr(md, 'Meta'):
@@ -51,8 +53,8 @@ def render(context, template):
     return env.get_template(os.path.basename(template)).render(context)
 
 def write(content, filename):
-    with open(filename, 'w') as f:
-        f.write(content.encode('utf-8'))
+    with codecs.open(filename, 'w', 'utf-8') as f:
+        f.write(content)
 
 def render_articles(md_files, template, output_extension=''):
     for md_file in md_files:

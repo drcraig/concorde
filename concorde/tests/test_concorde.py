@@ -1,3 +1,4 @@
+# coding: utf-8
 import unittest
 import os
 import time
@@ -44,10 +45,17 @@ Something: Non standard metadata
 The Body
 '''.lstrip()
 
+WITH_UNICODE = u'''
+Title: Emdashes — Why they are awesome
+Author: Frau Blücher
+
+This costs €100 in Europe.
+'''.lstrip()
+
 class TestParseMarkdownFile(unittest.TestCase):
     def test_parse_markdown(self):
         m = mock.mock_open(read_data=FULL_METADATA)
-        with mock.patch('concorde.open', m, create=True), \
+        with mock.patch('concorde.codecs.open', m, create=True), \
              mock.patch('concorde.os.path.getmtime') as getmtime:
             context = concorde.parse_markdown_file('a-folder/a-markdown-file.md', output_extension='.html')
             self.assertEqual('The Title', context['title'])
@@ -60,7 +68,7 @@ class TestParseMarkdownFile(unittest.TestCase):
 
     def test_no_metadata(self):
         m = mock.mock_open(read_data='No metadata')
-        with mock.patch('concorde.open', m, create=True), \
+        with mock.patch('concorde.codecs.open', m, create=True), \
              mock.patch('concorde.os.path.getmtime') as getmtime:
             mod_time = datetime.datetime(2014,3,1,12,0,0)
             getmtime.return_value = time.mktime(mod_time.timetuple())
@@ -72,7 +80,7 @@ class TestParseMarkdownFile(unittest.TestCase):
 
     def test_empty(self):
         m = mock.mock_open(read_data='')
-        with mock.patch('concorde.open', m, create=True), \
+        with mock.patch('concorde.codecs.open', m, create=True), \
              mock.patch('concorde.os.path.getmtime') as getmtime:
             mod_time = datetime.datetime(2014,3,1,12,0,0)
             getmtime.return_value = time.mktime(mod_time.timetuple())
@@ -82,12 +90,25 @@ class TestParseMarkdownFile(unittest.TestCase):
             self.assertIn('', context['html'])
             self.assertEqual(mod_time, context['date'])
 
+    def test_unicode(self):
+        m = mock.mock_open(read_data=WITH_UNICODE)
+        with mock.patch('concorde.codecs.open', m, create=True), \
+             mock.patch('concorde.os.path.getmtime') as getmtime:
+            context = concorde.parse_markdown_file('a-folder/a-markdown-file.md', output_extension='.html')
+            self.assertEqual(u'Emdashes — Why they are awesome', context['title'])
+            self.assertEqual([u'Frau Blücher'], context['author'])
+            self.assertIn(u'This costs €100 in Europe.', context['html'])
+            self.assertEqual('a-markdown-file', context['slug'])
+            self.assertEqual('a-folder/a-markdown-file.md', context['source'])
+            self.assertEqual('a-folder/a-markdown-file.html', context['link'])
+
+
 class TestUtilities(unittest.TestCase):
     def test_write(self):
         mock_open = mock.mock_open()
-        with mock.patch('concorde.open', mock_open, create=True):
+        with mock.patch('concorde.codecs.open', mock_open, create=True):
             concorde.write('stuff', 'a-file')
-            mock_open.assert_called_once_with('a-file', 'w')
+            mock_open.assert_called_once_with('a-file', 'w', 'utf-8')
 
     def test_file_relpath(self):
         file_1 = 'a/b/c'
