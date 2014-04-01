@@ -8,6 +8,7 @@ import argparse
 import mock
 
 import concorde
+import concorde.command_line
 
 CUR_DIR = os.path.dirname(__file__)
 TESTSITE = os.path.join(CUR_DIR, 'testsite')
