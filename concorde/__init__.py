@@ -7,6 +7,11 @@ from operator import itemgetter
 from datetime import datetime
 from urlparse import urljoin
 
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
 from markdown import Markdown
 import dateutil.parser
 from jinja2 import Environment, FileSystemLoader
