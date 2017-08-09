@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='concorde',
-      version='0.1.1',
+      version='0.1.2',
       description='Static site generator using Markdown and Jinja',
       long_description=readme(),
       classifiers=[
