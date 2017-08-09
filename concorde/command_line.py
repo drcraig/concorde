@@ -6,7 +6,9 @@ from . import get_source_files, render_articles, render_to_index, generate_feed
 def main(test_args=None):
     base_parser = argparse.ArgumentParser(add_help=False)
     base_parser.add_argument('-t', '--template', default='', help='Template file to use when rendering')
-    base_parser.add_argument('--output-extension', help='File extension of the rendered output files, if different from the template file extension')
+    base_parser.add_argument('--output-extension', default=None,
+                             help='File extension of the rendered output files, if different '
+                                  'from the template file extension')
     base_parser.add_argument('-r', '--recurse', action='store_true', default=False, 
                              help='Recurse through a directory')
     base_parser.add_argument('paths', metavar='path', nargs="+", help='Markdown file(s) or director(y,ies) of Markdown files')
@@ -29,7 +31,8 @@ def main(test_args=None):
 
     markdown_files = get_source_files(args.paths, recurse=args.recurse)
 
-    output_extension = args.output_extension or os.path.splitext(args.template)[1]
+    output_extension = os.path.splitext(args.template)[1] if args.output_extension is None \
+                       else args.output_extension
     if args.subparser_name == 'pages':
         render_articles(markdown_files, args.template, output_extension)
         return

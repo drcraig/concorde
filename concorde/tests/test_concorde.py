@@ -67,6 +67,19 @@ class TestParseMarkdownFile(unittest.TestCase):
             self.assertEqual(datetime.datetime(2014,1,2), context['date'])
             self.assertEqual(['Non standard metadata'], context['something'])
 
+    def test_empty_output_extension(self):
+        m = mock.mock_open(read_data=FULL_METADATA)
+        with mock.patch('concorde.codecs.open', m, create=True), \
+             mock.patch('concorde.os.path.getmtime') as getmtime:
+            context = concorde.parse_markdown_file('a-folder/a-markdown-file.md', output_extension='')
+            self.assertEqual('The Title', context['title'])
+            self.assertIn('The Body', context['html'])
+            self.assertEqual('a-markdown-file', context['slug'])
+            self.assertEqual('a-folder/a-markdown-file.md', context['source'])
+            self.assertEqual('a-folder/a-markdown-file', context['link'])
+            self.assertEqual(datetime.datetime(2014,1,2), context['date'])
+            self.assertEqual(['Non standard metadata'], context['something'])
+
     def test_no_metadata(self):
         m = mock.mock_open(read_data='No metadata')
         with mock.patch('concorde.codecs.open', m, create=True), \
@@ -197,6 +210,10 @@ class TestCommandLine(unittest.TestCase):
 
     def test_pages(self):
         concorde.command_line.main(['pages', '-t', 'templates/page-template.html', 'site/blog/'])
+
+    def test_pages_blank_extension(self):
+        concorde.command_line.main(['pages', '-t', 'templates/page-template.html',
+                                    '--output-extension', '', 'site/blog/'])
 
     def test_index(self):
         concorde.command_line.main(['index', '-t', 'templates/index-template.html',
